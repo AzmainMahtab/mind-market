@@ -1,8 +1,8 @@
 """user_table
 
-Revision ID: 827213ce5b61
+Revision ID: 3e379da075bf
 Revises: 
-Create Date: 2026-01-30 18:22:32.200451
+Create Date: 2026-01-30 18:57:05.824009
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '827213ce5b61'
+revision: str = '3e379da075bf'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,8 +28,8 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('phone', sa.String(length=20), nullable=True),
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
-    sa.Column('user_role', sa.Enum('ADMIN', 'BUYER', 'SOLVER', name='user_role'), nullable=False),
-    sa.Column('user_status', sa.Enum('ACTIVE', 'INACTIVE', 'SUSPENDED', name='user_status'), nullable=False),
+    sa.Column('user_role', sa.Enum('SUPER_ADMIN', 'ADMIN', 'BUYER', 'SOLVER', name='user_role'), nullable=False),
+    sa.Column('user_status', sa.Enum('ACTIVE', 'INACTIVE', 'SUSPENDED', 'APPROVAL_PENDING', name='user_status'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True),
