@@ -5,6 +5,7 @@
 *.log
 **/__pycache__/
 **/*.pyc
+**/certs/*.pem
 
 # --- Backend (Python/FastAPI) ---
 backend/__pycache__/
@@ -15,12 +16,13 @@ backend/.pytest_cache/
 backend/dist/
 backend/build/
 backend/tmp/
+backend/certs/
 
 # Database / Migrations
 backend/alembic/versions/*.pyc
 
 # Local development database
-backend/*.db
+# backend/*.db
 
 # --- Frontend (Next.js/Node) ---
 frontend/node_modules/

@@ -1,0 +1,118 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.be
+    
+    volumes:
+      - ./backend:/app
+    
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+
+    environment:
+      - APP_PORT=${APP_PORT}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+      - NATS_URL=${NATS_URL}
+      - AUTH_PRIVATE_KEY_PATH=${AUTH_PRIVATE_KEY_PATH}
+      - AUTH_PUBLIC_KEY_PATH=${AUTH_PUBLIC_KEY_PATH}
+
+    networks:
+      - market-network
+
+  postgres:
+    container_name: postgres
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.db
+    restart: always
+
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    # These flags are required to activate the extensions
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_cron,pg_partman_bgw"
+      - "-c"
+      - "cron.database_name=${DB_NAME}"
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - market-network
+
+  redis:
+    container_name: hex-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+    networks:
+      - market-network
+
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats-server
+    # -js: Enables JetStream
+    # -sd: Defines where the stream data is stored inside the container
+    # -m: Enables the monitoring port
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    ports:
+      - "${NATS_PORT}:4222"
+      - "${NATS_MONITOR_PORT}:8222"
+    volumes:
+      - nats_storage:/data
+    restart: always
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8222/varz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+    networks:
+      - market-network
+
+networks:
+  market-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis_data:
+  nats_storage:
