@@ -13,6 +13,8 @@ from app.domain.buyer import HiringStatus
 from app.domain.staff import Department, AvailabilityStatus as StaffingAvailabilityStatus
 from app.domain.project import ProjectStatus
 from app.domain.proposal import ProposalStatus
+from app.domain.task import TaskStatus
+from app.domain.task_submission import BuyerFeedback
 
 class UserTable(CommonMixin, Base):
     __tablename__ = "users"
@@ -194,4 +196,41 @@ class ProposalTable(CommonMixin, Base):
         SQLEnum(ProposalStatus, name="proposal_status_type", create_type=True),
         nullable=False,
         default=ProposalStatus.PENDING
+    )
+
+
+class TaskTable(CommonMixin, Base):
+    __tablename__ = "tasks"
+
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    task_description: Mapped[str] = mapped_column(String(1000), nullable=False)
+
+    task_status: Mapped[TaskStatus] = mapped_column(
+        SQLEnum(TaskStatus, name="task_status_type", create_type=True),
+        nullable=False,
+        default=TaskStatus.TODO
+    )
+
+
+class TaskSubmissionTable(CommonMixin, Base):
+    __tablename__ = "task_submissions"
+
+    task_id: Mapped[int] = mapped_column(
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    file_path: Mapped[str] = mapped_column(String(512), nullable=False)
+    version: Mapped[int] = mapped_column(nullable=False, default=1)
+
+    buyer_feedback: Mapped[BuyerFeedback] = mapped_column(
+        SQLEnum(BuyerFeedback, name="buyer_feedback_type", create_type=True),
+        nullable=False,
+        default=BuyerFeedback.PENDING
     )
