@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 class UserRole(Enum):
+    SUPER_ADMIN = "suer_admin"
     ADMIN = "admin"
     BUYER = "buyer"
     SOLVER = "solver"
@@ -13,6 +14,7 @@ class UserStatus(Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"
+    APPROVAL_PENDING = "approval_pending"
 
 
 @dataclass
@@ -21,8 +23,9 @@ class User:
     user_name : str
     email : str
     phone : str
-    user_role: UserRole
+    password: str
     user_status: UserStatus
+    user_role: UserRole = UserRole.SOLVER
     uuid: UUID = field(default_factory=uuid7)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
