@@ -12,6 +12,7 @@ from app.domain.user import UserRole, UserStatus
 from app.domain.buyer import HiringStatus
 from app.domain.staff import Department, AvailabilityStatus as StaffingAvailabilityStatus
 from app.domain.project import ProjectStatus
+from app.domain.proposal import ProposalStatus
 
 class UserTable(CommonMixin, Base):
     __tablename__ = "users"
@@ -169,4 +170,28 @@ class ProjectTable(CommonMixin, Base):
     solver_assigned_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), 
         nullable=True
+    )
+
+
+class ProposalTable(CommonMixin, Base):
+    __tablename__ = "proposals"
+
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    solver_id: Mapped[int] = mapped_column(
+        ForeignKey("solvers.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    proposed_price: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    cover_letter: Mapped[str] = mapped_column(String(5000), nullable=True)
+
+    proposal_status: Mapped[ProposalStatus] = mapped_column(
+        SQLEnum(ProposalStatus, name="proposal_status_type", create_type=True),
+        nullable=False,
+        default=ProposalStatus.PENDING
     )
