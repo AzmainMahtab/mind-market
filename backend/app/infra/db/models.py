@@ -1,20 +1,17 @@
-from uuid import UUID
-from datetime import datetime
-from sqlalchemy import ARRAY, JSON, String, DateTime, func, Enum as SQLEnum
+from sqlalchemy import ARRAY, String, Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy import ForeignKey
 from typing import Any
 
 from app.domain.solver import AvailabilityStatus
-from app.infra.db.session import Base
+from app.infra.db.session import Base, CommonMixin
 from app.domain.user import UserRole, UserStatus
+from app.domain.buyer import HiringStatus
 
-class UserTable(Base):
+class UserTable(CommonMixin, Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    uuid: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), unique=True, index=True, nullable=False)
     
     user_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
@@ -31,22 +28,10 @@ class UserTable(Base):
         nullable=False
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), default=None, nullable=True
-    )
 
 
-class SolverTable(Base):
+class SolverTable(CommonMixin ,Base):
     __tablename__ = "solvers"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    uuid: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), unique=True, index=True, nullable=False)
 
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -75,7 +60,7 @@ class SolverTable(Base):
     )
 
     meta: Mapped[dict[str, Any]] = mapped_column(
-        JSON,
+        JSONB,
         nullable=False,
         server_default='{}'
     )
@@ -86,14 +71,34 @@ class SolverTable(Base):
         server_default='{}'
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), default=None, nullable=True
+
+class BuyerTable(CommonMixin, Base):
+    __tablename__ = "buyers"
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False
     )
 
+    bio: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    business_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    total_spent: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    active_years: Mapped[int] = mapped_column(nullable=False, default=0)
+    rating: Mapped[float] = mapped_column(nullable=False, default=5.0)
+
+    total_projects: Mapped[int] = mapped_column(nullable=False, default=0)
+    completed_projects: Mapped[int] = mapped_column(nullable=False, default=0)
+
+    is_hiring: Mapped[HiringStatus] = mapped_column(
+        SQLEnum(HiringStatus, name="hiring_status", create_type=True),
+        nullable=False,
+        default=HiringStatus.OPEN
+    )
+
+    meta: Mapped[dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        server_default='{}'
+    )
