@@ -8,6 +8,7 @@ from app.domain.solver import AvailabilityStatus
 from app.infra.db.session import Base, CommonMixin
 from app.domain.user import UserRole, UserStatus
 from app.domain.buyer import HiringStatus
+from app.domain.staff import Department, AvailabilityStatus as StaffingAvailabilityStatus
 
 class UserTable(CommonMixin, Base):
     __tablename__ = "users"
@@ -95,6 +96,39 @@ class BuyerTable(CommonMixin, Base):
         SQLEnum(HiringStatus, name="hiring_status", create_type=True),
         nullable=False,
         default=HiringStatus.OPEN
+    )
+
+    meta: Mapped[dict[str, Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        server_default='{}'
+    )
+
+class StaffTable(CommonMixin, Base):
+    __tablename__ = "staff"
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False
+    )
+
+    full_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    responsibilities: Mapped[str] = mapped_column(String(1000), nullable=False)
+    
+    hourly_rate: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    rating: Mapped[float] = mapped_column(nullable=False, default=5.0)
+
+    department: Mapped[Department] = mapped_column(
+        SQLEnum(Department, name="department_type", create_type=True),
+        nullable=False,
+        default=Department.MODARATER
+    )
+    
+    is_available: Mapped[AvailabilityStatus] = mapped_column(
+        SQLEnum(StaffingAvailabilityStatus, name="staff_availability_status", create_type=True),
+        nullable=False,
+        default=AvailabilityStatus.AVAILABLE
     )
 
     meta: Mapped[dict[str, Any]] = mapped_column(
