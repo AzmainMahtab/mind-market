@@ -23,7 +23,7 @@ class UserTable(CommonMixin, Base):
     
     user_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    phone: Mapped[str] = mapped_column(String(20), nullable=True)
     
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
