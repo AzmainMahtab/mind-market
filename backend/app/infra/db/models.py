@@ -15,6 +15,7 @@ from app.domain.project import ProjectStatus
 from app.domain.proposal import ProposalStatus
 from app.domain.task import TaskStatus
 from app.domain.task_submission import BuyerFeedback
+from app.domain.project_compleation import CompletionStatus
 
 class UserTable(CommonMixin, Base):
     __tablename__ = "users"
@@ -233,4 +234,25 @@ class TaskSubmissionTable(CommonMixin, Base):
         SQLEnum(BuyerFeedback, name="buyer_feedback_type", create_type=True),
         nullable=False,
         default=BuyerFeedback.PENDING
+    )
+
+
+class ProjectCompletionTable(CommonMixin, Base):
+    __tablename__ = "project_completion_requests"
+
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    completion_remark: Mapped[str] = mapped_column(String(2000), nullable=False)
+    
+    solver_rating: Mapped[float] = mapped_column(nullable=False, default=5.0)
+
+    completion_status: Mapped[CompletionStatus] = mapped_column(
+        SQLEnum(CompletionStatus, name="completion_status_type", create_type=True),
+        nullable=False,
+        default=CompletionStatus.PENDING
     )
