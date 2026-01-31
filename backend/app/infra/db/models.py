@@ -1,14 +1,17 @@
 from sqlalchemy import ARRAY, String, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, DateTime
 from typing import Any
+from datetime import datetime
+from typing import Optional
 
 from app.domain.solver import AvailabilityStatus
 from app.infra.db.session import Base, CommonMixin
 from app.domain.user import UserRole, UserStatus
 from app.domain.buyer import HiringStatus
 from app.domain.staff import Department, AvailabilityStatus as StaffingAvailabilityStatus
+from app.domain.project import ProjectStatus
 
 class UserTable(CommonMixin, Base):
     __tablename__ = "users"
@@ -135,4 +138,35 @@ class StaffTable(CommonMixin, Base):
         JSONB,
         nullable=False,
         server_default='{}'
+    )
+
+
+class ProjectTable(CommonMixin, Base):
+    __tablename__ = "projects"
+
+    project_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    project_description: Mapped[str] = mapped_column(String(2000), nullable=False)
+    project_budget: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    project_duration_days: Mapped[int] = mapped_column(nullable=False, default=0)
+
+    buyer_id: Mapped[int] = mapped_column(
+        ForeignKey("buyers.id", ondelete="CASCADE"), 
+        nullable=False,
+        index=True
+    )
+    solver_id: Mapped[int] = mapped_column(
+        ForeignKey("solvers.id", ondelete="SET NULL"), 
+        nullable=True,
+        index=True
+    )
+
+    project_status: Mapped[ProjectStatus] = mapped_column(
+        SQLEnum(ProjectStatus, name="project_status_type", create_type=True),
+        nullable=False,
+        default=ProjectStatus.PENDING
+    )
+
+    solver_assigned_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=True
     )
