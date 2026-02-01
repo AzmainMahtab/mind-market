@@ -19,7 +19,7 @@ clean:
 
 install-deps:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SVC) pip install $(PKG)
-	$(DOCKER_COMPOSE) exec $(BACKEND_SVC) pip freeze > ./backend/requirements.txt
+	$(DOCKER_COMPOSE) exec $(BACKEND_SVC) pip freeze > requirements.txt
 	@echo "Package $(PKG) installed and ./backend/requirements.txt updated."
 
 migrate-gen:

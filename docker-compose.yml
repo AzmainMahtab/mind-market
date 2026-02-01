@@ -2,11 +2,11 @@ services:
   backend:
     container_name: backend
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile.be
     
     volumes:
-      - ./backend:/app
+      - .:/app
     
     ports:
       - "${APP_PORT}:${APP_PORT}"
@@ -41,7 +41,7 @@ services:
   postgres:
     container_name: postgres
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile.db
     restart: always
 
