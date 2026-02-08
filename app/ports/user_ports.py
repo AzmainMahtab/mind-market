@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Tuple, Union
 from uuid import UUID
-from app.domain.user import User, UserRole, UserStatus
+from app.domain.user import User, UserRegistrationData, UserRole, UserStatus, UserUpdateData
 
 
 
@@ -48,4 +48,31 @@ class UserRepository(ABC):
     @abstractmethod
     async def prune(self, identifier: Union[int, UUID]) -> bool:
         """Permanent hard delete"""
+        pass
+
+
+class UserService(ABC):
+    """
+    Service Interface for User Service 
+
+    """
+    @abstractmethod
+    async def register_user(self, user_data:UserRegistrationData) -> User:
+        """
+        Register a new user with the provided data.
+        """
+        pass
+
+    @abstractmethod
+    async def update_user(self, update_data:UserUpdateData, identifier: Union[int, UUID]) -> User:
+        """
+        Update user data for the user identified by either id or uuid.
+        """
+        pass
+
+    @abstractmethod
+    async def get_user(self, identifier: Union[int, UUID]) -> Optional[User]:
+        """
+        Get user by either id or uuid.
+        """
         pass
