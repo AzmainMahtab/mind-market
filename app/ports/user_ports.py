@@ -76,3 +76,38 @@ class UserService(ABC):
         Get user by either id or uuid.
         """
         pass
+
+    @abstractmethod
+    async def list_users(self,
+        skip: int = 0, 
+        limit: int = 10, 
+        role: Optional[UserRole] = None,
+        status: Optional[UserStatus] = None
+    ) -> Tuple[List[User], int]:
+        """
+        List users with pagination and optional filtering by role and status.
+        Returns a tuple of (users_list, total_count)
+        """
+        pass
+
+    @abstractmethod
+    async def get_user_by_email(self, email: str) -> Optional[User]:
+        """
+        Get user by email.
+        """
+        pass
+
+    @abstractmethod
+    async def get_user_by_username(self, username: str) -> Optional[User]:
+        """
+        Get user by username.
+        """
+        pass
+
+    @abstractmethod
+    async def soft_delete_user(self, identifier: Union[int, UUID]) -> bool:
+        """
+        Soft delete user by either id or uuid.
+        """
+        pass
+    
