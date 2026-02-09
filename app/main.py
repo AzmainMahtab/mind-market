@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from app.settings import settings
 from app.infra.db.session import ping_database, engine
 
+from app.api.v1.endpoints import user_endpoint
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -35,6 +37,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.include_router(user_endpoint.router)
 
 @app.get("/health", tags=["System"])
 async def health_check():
