@@ -1,32 +1,32 @@
 from datetime import datetime, timezone
-from typing import Optional, List, Tuple, Union, cast
+from typing import Optional, List, Tuple
 from uuid import UUID
-from sqlalchemy import CursorResult, select, func, update, delete, or_
+from sqlalchemy import  select, func, update, delete 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.user import User
+from app.domain.user import User, UserRole, UserStatus
 from app.ports.user_ports import UserRepository
 from app.infra.db.models import UserTable
 
-class SqlAlchemyUserRepository(UserRepository):
+class AlchemyUserRepository(UserRepository):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    def _to_domain(self, row: UserTable) -> User:
+    def _to_domain(self, user_row: UserTable) -> User:
         return User(
-            id=row.id,
-            uuid=row.uuid,
-            user_name=row.user_name,
-            email=row.email,
-            phone=row.phone,
-            password=row.hashed_password,
-            user_role=row.user_role,
-            user_status=row.user_status,
-            created_at=row.created_at,
-            updated_at=row.updated_at,
-            deleted_at=row.deleted_at
+            id=user_row.id,
+            user_name=user_row.user_name,
+            email=user_row.email,
+            phone=user_row.phone,
+            password=user_row.hashed_password,
+            user_status=user_row.user_status,
+            user_role=user_row.user_role,
+            uuid=user_row.uuid,
+            created_at=user_row.created_at,
+            updated_at=user_row.updated_at,
+            deleted_at=user_row.deleted_at
         )
-
+    
     async def create(self, user: User) -> User:
         db_user = UserTable(
             user_name=user.user_name,
@@ -38,6 +38,8 @@ class SqlAlchemyUserRepository(UserRepository):
             uuid=user.uuid
         )
         self.session.add(db_user)
+        await self.session.commit()
+        await self.session.refresh(db_user)
         await self.session.flush()
         return self._to_domain(db_user)
 
@@ -59,9 +61,8 @@ class SqlAlchemyUserRepository(UserRepository):
         row = result.scalar_one()
         return self._to_domain(row)
 
-    async def get_by_id_or_uuid(self, identifier: Union[int, UUID]) -> Optional[User]:
-        filter_col = UserTable.id if isinstance(identifier, int) else UserTable.uuid
-        query = select(UserTable).where(filter_col == identifier, UserTable.deleted_at == None)
+    async def get_by_id_or_uuid(self, id: UUID) -> Optional[User]:
+        query = select(UserTable).where(UserTable.uuid == id, UserTable.deleted_at == None)
         result = await self.session.execute(query)
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
@@ -78,40 +79,36 @@ class SqlAlchemyUserRepository(UserRepository):
         row = result.scalar_one_or_none()
         return self._to_domain(row) if row else None
 
-    async def list_users(self, skip: int = 0, limit: int = 10, role=None, status=None) -> Tuple[List[User], int]:
-        # Build filters
+    async def list_users(
+        self, 
+        skip: int = 0, 
+        limit: int = 10, 
+        role: Optional[UserRole] = None, 
+        status: Optional[UserStatus] = None
+    ) -> Tuple[List[User], int]:
         filters = [UserTable.deleted_at == None]
         if role: filters.append(UserTable.user_role == role)
         if status: filters.append(UserTable.user_status == status)
 
-        # Count Query
         count_query = select(func.count()).select_from(UserTable).where(*filters)
         total_count = (await self.session.execute(count_query)).scalar() or 0
 
-        # Data Query
         data_query = select(UserTable).where(*filters).offset(skip).limit(limit).order_by(UserTable.id.desc())
         result = await self.session.execute(data_query)
         users = [self._to_domain(row) for row in result.scalars().all()]
 
         return users, total_count
 
-    async def soft_delete(self, identifier: Union[int, UUID]) -> bool:
-        filter_col = UserTable.id if isinstance(identifier, int) else UserTable.uuid
-        stmt = (
+    async def soft_delete(self, id: UUID) -> bool:
+        query = (
             update(UserTable)
-            .where(filter_col == identifier)
+            .where(UserTable.uuid == id)
             .values(deleted_at=datetime.now(timezone.utc))
         )
-        result = await self.session.execute(stmt)
-        cursor_result = cast(CursorResult, result)
+        result = await self.session.execute(query)
+        return (getattr(result, "rowcount", 0)) > 0
 
-        return (cursor_result.rowcount or 0) > 0
-
-    async def prune(self, identifier: Union[int, UUID]) -> bool:
-        filter_col = UserTable.id if isinstance(identifier, int) else UserTable.uuid
-        stmt = delete(UserTable).where(filter_col == identifier)
-        result = await self.session.execute(stmt)
-        cursor_result = cast(CursorResult, result)
-
-        return (cursor_result.rowcount or 0) > 0
-
+    async def prune(self, id: UUID) -> bool:
+        query = delete(UserTable).where(UserTable.uuid == id)
+        result = await self.session.execute(query)
+        return (getattr(result, "rowcount", 0)) > 0

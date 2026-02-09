@@ -32,4 +32,15 @@ class User:
     deleted_at: Optional[datetime] = field(default=None)
 
 
+@dataclass
+class UserRegistrationData:
+    user_name : str
+    email : str
+    phone : str
+    password: str
+    user_role: UserRole = UserRole.SOLVER
 
+@dataclass
+class UserUpdateData:
+    user_name : Optional[str] = None
+    phone : Optional[str] = None

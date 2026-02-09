@@ -39,7 +39,7 @@ services:
       - market-network
 
   postgres:
-    container_name: postgres
+    container_name: postgres-mind-hex
     build:
       context: .
       dockerfile: Dockerfile.db
@@ -73,7 +73,7 @@ services:
       - market-network
 
   redis:
-    container_name: hex-redis
+    container_name: redis-mind-hex
     image: redis:7-alpine
     ports:
       - "6379:6379"
@@ -92,7 +92,7 @@ services:
 
   nats:
     image: nats:2.10-alpine
-    container_name: nats-server
+    container_name: nats-mind-hex
     # -js: Enables JetStream
     # -sd: Defines where the stream data is stored inside the container
     # -m: Enables the monitoring port

@@ -20,7 +20,7 @@ clean:
 install-deps:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SVC) pip install $(PKG)
 	$(DOCKER_COMPOSE) exec $(BACKEND_SVC) pip freeze > requirements.txt
-	@echo "Package $(PKG) installed and ./backend/requirements.txt updated."
+	@echo "Package $(PKG) installed and ./requirements.txt updated."
 
 migrate-gen:
 	$(DOCKER_COMPOSE) exec $(BACKEND_SVC) alembic revision --autogenerate -m "$(MSG)"
