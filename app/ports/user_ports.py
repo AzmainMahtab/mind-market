@@ -19,7 +19,7 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id_or_uuid(self, identifier: Union[int, UUID]) -> Optional[User]:
+    async def get_by_id_or_uuid(self, id:  UUID) -> Optional[User]:
         pass
 
     @abstractmethod
@@ -42,11 +42,11 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def soft_delete(self, identifier: Union[int, UUID]) -> bool:
+    async def soft_delete(self, id: UUID) -> bool:
         pass
 
     @abstractmethod
-    async def prune(self, identifier: Union[int, UUID]) -> bool:
+    async def prune(self, id: UUID) -> bool:
         """Permanent hard delete"""
         pass
 
@@ -64,16 +64,16 @@ class UserService(ABC):
         pass
 
     @abstractmethod
-    async def update_user(self, update_data:UserUpdateData, identifier: Union[int, UUID]) -> User:
+    async def update_user(self, update_data:UserUpdateData, id: UUID) -> User:
         """
-        Update user data for the user identified by either id or uuid.
+        Update user data for the user identified by uuid.
         """
         pass
 
     @abstractmethod
-    async def get_user(self, identifier: Union[int, UUID]) -> Optional[User]:
+    async def get_user(self, id: UUID) -> Optional[User]:
         """
-        Get user by either id or uuid.
+        Get user by uuid.
         """
         pass
 
@@ -105,9 +105,9 @@ class UserService(ABC):
         pass
 
     @abstractmethod
-    async def soft_delete_user(self, identifier: Union[int, UUID]) -> bool:
+    async def soft_delete_user(self, id: UUID) -> bool:
         """
-        Soft delete user by either id or uuid.
+        Soft delete user by uuid.
         """
         pass
     
