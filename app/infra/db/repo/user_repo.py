@@ -38,6 +38,8 @@ class AlchemyUserRepository(UserRepository):
             uuid=user.uuid
         )
         self.session.add(db_user)
+        await self.session.commit()
+        await self.session.refresh(db_user)
         await self.session.flush()
         return self._to_domain(db_user)
 
